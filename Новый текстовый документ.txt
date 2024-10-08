@@ -1,0 +1,11 @@
+import os
+import telebot
+
+# Получаем токен из переменной окружения
+token = os.getenv('TELEGRAM_BOT_TOKEN')
+
+# Проверяем, что токен получен
+if token is None:
+    print("Ошибка: Токен бота не установлен в переменной окружения.")
+    exit(1)
+
