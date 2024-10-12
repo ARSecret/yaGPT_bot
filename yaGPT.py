@@ -30,7 +30,7 @@ def yandex_gpt_request(user_input):
         "messages": [
             {
                 "role": "system",
-                "text": "Ты ассистент дроид, способный помочь в галактических приключениях."
+                "text": "Привет, чем могу помочь?"
             },
             {
                 "role": "user",
