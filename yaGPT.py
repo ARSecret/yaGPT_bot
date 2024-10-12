@@ -3,16 +3,20 @@ import telebot
 import requests
 from telebot import types
 
-# Получаем токен Telegram и API-ключ Yandex из переменных окружения
+# Получаем токен Telegram, API-ключ Yandex и идентификатор каталога из переменных окружения
 telegram_token = os.getenv('TELEGRAM_BOT_TOKEN')
 yandex_api_key = os.getenv('YANDEX_API_KEY')
+folder_id = os.getenv('YANDEX_FOLDER_ID')
 
-# Проверяем, что токены получены
+# Проверяем, что переменные получены
 if telegram_token is None:
     print("Ошибка: Токен бота не установлен в переменной окружения.")
     exit(1)
 if yandex_api_key is None:
     print("Ошибка: API-ключ Yandex не установлен в переменной окружения.")
+    exit(1)
+if folder_id is None:
+    print("Ошибка: Идентификатор каталога не установлен в переменной окружения.")
     exit(1)
 
 # Создаем экземпляр бота
@@ -25,7 +29,7 @@ def yandex_gpt_request(user_input):
         "completionOptions": {
             "stream": False,
             "temperature": 0.6,
-            "maxTokens": "2000"
+            "maxTokens": 2000
         },
         "messages": [
             {
@@ -42,7 +46,8 @@ def yandex_gpt_request(user_input):
     url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Api-Key {yandex_api_key}"
+        "Authorization": f"Api-Key {yandex_api_key}",
+        "x-folder-id": folder_id
     }
 
     response = requests.post(url, headers=headers, json=prompt)
@@ -77,4 +82,5 @@ def handle_photo(message):
 def yandex_gpt_analyze_image(photo):
     return "Анализ изображения от Yandex GPT"
 
+# Запуск бота
 bot.polling(none_stop=True, interval=0)

@@ -1,32 +1,26 @@
-# Telegram Bot with Yandex GPT Integration
+## Установка переменных окружения в PowerShell
 
-## Установка
+Для корректной работы Telegram-бота с Yandex GPT API необходимо установить три переменные окружения: токен Telegram-бота, API-ключ Yandex и идентификатор каталога (folder-id). Для этого выполните следующие команды в PowerShell.
 
-1. Установите необходимые зависимости:
-    ```bash
-    pip install -r requirements.txt
-    ```
+### Шаг 1. Установка переменных окружения
 
-2. Установите переменные окружения:
+1. Откройте PowerShell и выполните команды:
 
-    - Для Windows:
-      ```bash
-      set TELEGRAM_BOT_TOKEN=ваш_токен_бота
-      set YANDEX_API_KEY=ваш_ключ_Yandex_API
-      ```
+```powershell
+# Установить токен для Telegram
+$env:TELEGRAM_BOT_TOKEN = "ваш_telegram_бот_токен"
 
-    - Для Linux/MacOS:
-      ```bash
-      export TELEGRAM_BOT_TOKEN=ваш_токен_бота
-      export YANDEX_API_KEY=ваш_ключ_Yandex_API
-      ```
+# Установить API-ключ для Yandex
+$env:YANDEX_API_KEY = "ваш_yandex_api_ключ"
 
-3. Запустите бота:
-    ```bash
-    python bot.py
-    ```
+# Установить идентификатор каталога (folder-id)
+$env:YANDEX_FOLDER_ID = "ваш_yandex_folder_id"
 
-## Функциональность
+# Проверить токен Telegram
+$env:TELEGRAM_BOT_TOKEN
 
-- Запрос к Yandex GPT через Telegram.
-- Обработка фотографий.
+# Проверить API-ключ Yandex
+$env:YANDEX_API_KEY
+
+# Проверить идентификатор каталога
+$env:YANDEX_FOLDER_ID
