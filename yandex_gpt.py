@@ -1,8 +1,7 @@
 import os
 import requests
-from io import BytesIO
 
-# Получаем API-ключ Yandex и идентификатор каталога из переменных окружения
+# Получаем токен Telegram, API-ключ Yandex и идентификатор каталога из переменных окружения
 yandex_api_key = os.getenv('YANDEX_API_KEY')
 folder_id = os.getenv('YANDEX_FOLDER_ID')
 
@@ -51,12 +50,13 @@ def yandex_gpt_analyze_image(image_data):
         "x-folder-id": folder_id
     }
 
-    files = {'file': ('image.jpg', BytesIO(image_data), 'image/jpeg')}
-    response = requests.post(url, headers=headers, files=files)
+    # Используем BytesIO для отправки изображения
+    # files = {'file': ('image.jpg', BytesIO(image_data), 'image/jpeg')}
+    # response = requests.post(url, headers=headers, files=files)
 
-    if response.status_code == 200:
-        result = response.json().get('result', {})
-        text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
-        return text
-    else:
-        return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
+    # if response.status_code == 200:
+    #     result = response.json().get('result', {})
+    #     text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
+    #     return text
+    # else:
+    #     return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
