@@ -102,7 +102,6 @@ def handle_photo(message):
 # Функция анализа изображения с помощью Yandex GPT
 def yandex_gpt_analyze_image(photo):
     # Здесь вы можете реализовать запрос к Yandex API для анализа изображения.
-    return "Анализ изображения от Yandex GPT: (здесь должен быть ваш ответ)"
-
+    return "Анализ изображения от Yandex GPT:"
 # Запуск бота
 bot.polling(none_stop=True, interval=0)
