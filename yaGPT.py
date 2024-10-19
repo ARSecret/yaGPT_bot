@@ -38,7 +38,7 @@ def yandex_gpt_request(user_input):
             },
             {
                 "role": "user",
-                "text": user_input  # Текст пользователя
+                "text": user_input
             }
         ]
     }
@@ -51,10 +51,16 @@ def yandex_gpt_request(user_input):
     }
 
     response = requests.post(url, headers=headers, json=prompt)
+
+    # Диагностика - выводим полный ответ API
+    print(response.json())
+
     if response.status_code == 200:
-        return response.json()['result']['text']
+        result = response.json().get('result', {})
+        text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
+        return text
     else:
-        return "Ошибка при обращении к Yandex GPT API"
+        return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
 
 # Кнопка для запроса к Yandex GPT
 @bot.message_handler(commands=['start'])
@@ -70,6 +76,12 @@ def callback_worker(call):
         response = yandex_gpt_request("Привет! Мне нужна твоя помощь.")
         bot.send_message(call.message.chat.id, response)
 
+# Обработка текстовых сообщений
+@bot.message_handler(func=lambda message: True)
+def handle_text_message(message):
+    response = yandex_gpt_request(message.text)
+    bot.send_message(message.chat.id, response)
+
 # Обработка фотографий
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
@@ -77,6 +89,7 @@ def handle_photo(message):
     downloaded_file = bot.download_file(file_info.file_path)
     response = yandex_gpt_analyze_image(downloaded_file)
     bot.send_message(message.chat.id, response)
+
 
 # Функция анализа изображения с помощью Yandex GPT
 def yandex_gpt_analyze_image(photo):
