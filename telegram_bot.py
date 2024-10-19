@@ -1,6 +1,6 @@
 import os
 import telebot
-from yandex_gpt import yandex_gpt_request, yandex_gpt_analyze_image
+from yandex_gpt import yandex_gpt_request, yandex_ocr_analyze_image
 
 # Получаем токен Telegram, API-ключ Yandex и идентификатор каталога из переменных окружения
 telegram_token = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -20,7 +20,7 @@ def send_welcome(message):
 def create_reply_markup():
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = telebot.types.KeyboardButton("Ввести текст")
-    btn2 = telebot.types.KeyboardButton("Обработка изображения")
+    btn2 = telebot.types.KeyboardButton("Обработка текста из изображения")
     markup.add(btn1, btn2)
     return markup
 
@@ -30,10 +30,17 @@ def handle_text_input(message):
     msg = bot.send_message(message.chat.id, "Введите текст для анализа:")
     bot.register_next_step_handler(msg, process_text)
 
+
 def process_text(message):
     user_input = message.text
     response = yandex_gpt_request(user_input)
-    bot.send_message(message.chat.id, response)
+
+    # Извлекаем текст из ответа Yandex GPT
+    text = response.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
+
+    # Отправляем результат пользователю
+    bot.send_message(message.chat.id, text)
+
 
 # Обработка нажатия кнопки "Обработка изображения"
 @bot.message_handler(func=lambda message: message.text == "Обработка изображения")
@@ -46,6 +53,25 @@ def handle_photo(message):
     file_info = bot.get_file(message.photo[-1].file_id)
     downloaded_file = bot.download_file(file_info.file_path)
 
+    # Сохраняем загруженный файл временно для анализа
+    with open("temp_image.jpg", "wb") as temp_file:
+        temp_file.write(downloaded_file)
+
     # Отправляем изображение на анализ
-    response = yandex_gpt_analyze_image(downloaded_file)
+    response = yandex_ocr_analyze_image("temp_image.jpg")
+
+    # Извлечение текста из результата OCR
+    if 'results' in response:
+        text_result = "\n".join([item['text'] for item in response['results']])
+        bot.send_message(message.chat.id, f"Распознанный текст: {text_result}")
+    else:
+        bot.send_message(message.chat.id, "Ошибка: текст не был распознан.")
+
+    # Сохраняем загруженный файл временно для анализа
+    with open("temp_image.jpg", "wb") as temp_file:
+        temp_file.write(downloaded_file)
+
+    # Отправляем изображение на анализ
+    response = yandex_ocr_analyze_image("temp_image.jpg")
     bot.send_message(message.chat.id, response)
+

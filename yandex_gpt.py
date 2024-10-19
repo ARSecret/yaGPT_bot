@@ -1,7 +1,10 @@
 import os
 import requests
+import base64
+import json
+from mimetypes import guess_type
 
-# Получаем токен Telegram, API-ключ Yandex и идентификатор каталога из переменных окружения
+# Получаем токен Yandex и идентификатор каталога из переменных окружения
 yandex_api_key = os.getenv('YANDEX_API_KEY')
 folder_id = os.getenv('YANDEX_FOLDER_ID')
 
@@ -42,21 +45,35 @@ def yandex_gpt_request(user_input):
     else:
         return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
 
-# Функция анализа изображения с помощью Yandex GPT
-def yandex_gpt_analyze_image(image_data):
-    url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
-    headers = {
-        "Authorization": f"Api-Key {yandex_api_key}",
-        "x-folder-id": folder_id
+# Функция кодирования файла в Base64
+def encode_file(file_path):
+    with open(file_path, "rb") as fid:
+        file_content = fid.read()
+    return base64.b64encode(file_content).decode("utf-8")
+
+# Функция анализа изображения с помощью Yandex OCR API
+def yandex_ocr_analyze_image(file_path):
+    mime_type, _ = guess_type(file_path)
+    content = encode_file(file_path)
+
+    data = {
+        "mimeType": mime_type,
+        "languageCodes": ["*"],
+        "content": content
     }
 
-    # Используем BytesIO для отправки изображения
-    # files = {'file': ('image.jpg', BytesIO(image_data), 'image/jpeg')}
-    # response = requests.post(url, headers=headers, files=files)
+    url = "https://ocr.api.cloud.yandex.net/ocr/v1/recognizeText"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Api-Key {yandex_api_key}",
+        "x-folder-id": folder_id,
+        "x-data-logging-enabled": "true"
+    }
 
-    # if response.status_code == 200:
-    #     result = response.json().get('result', {})
-    #     text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
-    #     return text
-    # else:
-    #     return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return f"Ошибка при обращении к Yandex OCR API: {response.status_code}"
+

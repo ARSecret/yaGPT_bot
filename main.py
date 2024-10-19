@@ -1,6 +1,6 @@
 import os
 from telegram_bot import bot
-from yandex_gpt import yandex_gpt_request, yandex_gpt_analyze_image
+from yandex_gpt import yandex_gpt_request, yandex_ocr_analyze_image
 
 # Получаем токен Telegram, API-ключ Yandex и идентификатор каталога из переменных окружения
 telegram_token = os.getenv('TELEGRAM_BOT_TOKEN')
