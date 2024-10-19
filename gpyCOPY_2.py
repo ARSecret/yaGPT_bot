@@ -3,9 +3,10 @@ import telebot
 import requests
 from telebot import types
 
-# Получаем токен Telegram и API-ключ Yandex из переменных окружения
+# Получаем токен Telegram, API-ключ Yandex и идентификатор каталога из переменных окружения
 telegram_token = os.getenv('TELEGRAM_BOT_TOKEN')
 yandex_api_key = os.getenv('YANDEX_API_KEY')
+folder_id = os.getenv('YANDEX_FOLDER_ID')
 
 # Проверяем, что переменные получены
 if telegram_token is None:
@@ -14,9 +15,9 @@ if telegram_token is None:
 if yandex_api_key is None:
     print("Ошибка: API-ключ Yandex не установлен в переменной окружения.")
     exit(1)
-
-# Идентификатор каталога встроен в код
-folder_id = 'b1g14jq77fnugn9t509v'
+if folder_id is None:
+    print("Ошибка: Идентификатор каталога не установлен в переменной окружения.")
+    exit(1)
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot(telegram_token)
@@ -37,7 +38,7 @@ def yandex_gpt_request(user_input):
             },
             {
                 "role": "user",
-                "text": user_input  # Текст пользователя
+                "text": user_input
             }
         ]
     }
@@ -50,24 +51,45 @@ def yandex_gpt_request(user_input):
     }
 
     response = requests.post(url, headers=headers, json=prompt)
+
+    # Диагностика - выводим полный ответ API
+    print(response.json())
+
     if response.status_code == 200:
-        return response.json()['result']['text']
+        result = response.json().get('result', {})
+        text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
+        return text
     else:
-        return f"Ошибка при обращении к Yandex GPT API: {response.status_code}, {response.text}"
+        return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
 
 # Кнопка для запроса к Yandex GPT
 @bot.message_handler(commands=['start'])
 def start_message(message):
     keyboard = types.InlineKeyboardMarkup()
-    key_gpt = types.InlineKeyboardButton(text='Запросить Yandex GPT', callback_data='gpt')
-    keyboard.add(key_gpt)
-    bot.send_message(message.chat.id, "Выберите действие:", reply_markup=keyboard)
+    button_text = types.InlineKeyboardButton(text='Ввести текст', callback_data='text_input')
+    button_photo = types.InlineKeyboardButton(text='Анализировать фото', callback_data='photo_analysis')
+    keyboard.add(button_text, button_photo)
+
+    # Изменяем текст сообщения
+    bot.send_message(message.chat.id, "Приветствую, я Яндекс-помощник, чем могу помочь?", reply_markup=keyboard)
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
-    if call.data == 'gpt':
-        response = yandex_gpt_request("Привет! Мне нужна твоя помощь.")
-        bot.send_message(call.message.chat.id, response)
+    if call.data == 'text_input':
+        bot.send_message(call.message.chat.id, "Введите текст для запроса к Yandex GPT:")
+    elif call.data == 'photo_analysis':
+        bot.send_message(call.message.chat.id, "Пожалуйста, отправьте фотографию для анализа.")
+
+# Обработка текстовых сообщений
+@bot.message_handler(func=lambda message: True)
+def handle_text_message(message):
+    if message.text.startswith("/"):
+        return  # Игнорируем команды
+
+    # Проверяем, что это не пустое сообщение
+    if message.text.strip():
+        response = yandex_gpt_request(message.text)
+        bot.send_message(message.chat.id, response)
 
 # Обработка фотографий
 @bot.message_handler(content_types=['photo'])
@@ -79,7 +101,8 @@ def handle_photo(message):
 
 # Функция анализа изображения с помощью Yandex GPT
 def yandex_gpt_analyze_image(photo):
-    return "Анализ изображения от Yandex GPT"
+    # Здесь вы можете реализовать запрос к Yandex API для анализа изображения.
+    return "Анализ изображения от Yandex GPT: (здесь должен быть ваш ответ)"
 
 # Запуск бота
 bot.polling(none_stop=True, interval=0)
