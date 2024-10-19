@@ -97,15 +97,15 @@ def yandex_gpt_analyze_image(image_data):
     }
 
     # Используем BytesIO для отправки изображения
-    files = {'file': ('image.jpg', BytesIO(image_data), 'image/jpeg')}
-    response = requests.post(url, headers=headers, files=files)
+    #files = {'file': ('image.jpg', BytesIO(image_data), 'image/jpeg')}
+    #response = requests.post(url, headers=headers, files=files)
 
-    if response.status_code == 200:
-        result = response.json().get('result', {})
-        text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
-        return text
-    else:
-        return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
+    #if response.status_code == 200:
+    #    result = response.json().get('result', {})
+    #    text = result.get('alternatives', [{}])[0].get('message', {}).get('text', "Ошибка: ответ не содержит текста.")
+    #    return text
+    #else:
+    #    return f"Ошибка при обращении к Yandex GPT API: {response.status_code}"
 
 # Запуск бота
 bot.polling(none_stop=True, interval=0)
